@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulado Interativo - Questão por Questão</title>
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --success: #16a34a;
+            --error: #dc2626;
+            --border: #e5e7eb;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px 12px;
+            display: flex;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 700px;
+            width: 100%;
+        }
+
+        header {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            margin: 0 0 4px 0;
+            color: #1e293b;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background-color: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 16px;
+            width: 100%;
+            word-wrap: break-word;
+            overflow: hidden;
+        }
+
+        .question-number {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .question-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .option {
+            display: flex;
+            align-items: flex-start;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+            width: 100%;
+        }
+
+        .option:hover {
+            background-color: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        .option input {
+            margin-top: 3px;
+            margin-right: 12px;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .option-text {
+            font-size: 0.95rem;
+            line-height: 1.4;
+            word-break: break-word;
+            flex-grow: 1;
+        }
+
+        .option.correct-option {
+            background-color: #dcfce7 !important;
+            border-color: var(--success) !important;
+            font-weight: 600;
+        }
+
+        .option.wrong-option {
+            background-color: #fee2e2 !important;
+            border-color: var(--error) !important;
+        }
+
+        .feedback-box {
+            margin-top: 18px;
+            padding: 14px;
+            border-radius: 6px;
+            display: none;
+            word-wrap: break-word;
+        }
+
+        .feedback-box.correct {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+        }
+
+        .feedback-box.wrong {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+            gap: 10px;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 0.95rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        button.secondary {
+            background-color: #64748b;
+        }
+
+        button.secondary:hover {
+            background-color: #475569;
+        }
+
+        button:disabled {
+            background-color: #cbd5e1;
+            cursor: not-allowed;
+        }
+
+        #result-screen {
+            display: none;
+            text-align: center;
+        }
+
+        .score-big {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div style="width: 100%;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h1>Simulado - Questão por Questão</h1>
+                <span id="score-counter" style="font-weight: 600; color: #64748b;">Acertos: 0</span>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+        </div>
+    </header>
+
+    <div id="quiz-card" class="card">
+        <div class="question-number" id="q-number">Questão 1 de 40</div>
+        <div class="question-text" id="q-text">Carregando pergunta...</div>
+        
+        <form id="opt-form" onsubmit="return false;">
+            <div class="options" id="options-container"></div>
+        </form>
+
+        <div id="feedback" class="feedback-box">
+            <strong id="feedback-title"></strong>
+            <p id="feedback-explanation" style="margin: 6px 0 0 0; font-size: 0.92rem;"></p>
+        </div>
+
+        <div class="actions">
+            <button id="action-btn" onclick="handleAction()">Confirmar Resposta</button>
+        </div>
+    </div>
+
+    <div id="result-screen" class="card">
+        <h2>Simulado Concluído!</h2>
+        <p>Você respondeu todas as 40 questões.</p>
+        <div class="score-big" id="final-score">0 / 40</div>
+        <p id="final-feedback"></p>
+        <div style="margin-top: 24px;">
+            <button onclick="restartQuiz()">Iniciar Novo Simulado</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const questionBank = [
+    {
+        q: "Segundo William Stallings, como é definido um sistema computacional?",
+        options: [
+            "Como um conjunto de componentes inter-relacionados caracterizado por sua estrutura e sua função.",
+            "Como uma máquina isolada que funciona sem necessidade de barramentos.",
+            "Como um módulo composto exclusivamente de processador e memória RAM.",
+            "Como um software de gerenciamento de dados de alto nível."
+        ],
+        correct: 0,
+        explanation: "Um sistema computacional consiste num conjunto de componentes inter-relacionados, caracterizados por sua estrutura (interconexão) e função (operação individual)."
+    },
+    {
+        q: "Na abordagem Top-Down para projeto e descrição de sistemas complexos, o projetista lida com:",
+        options: [
+            "Um nível do sistema de cada vez, dependendo apenas de uma caracterização simplificada do nível inferior.",
+            "Todos os níveis eletrônicos e físicos simultaneamente.",
+            "Exclusivamente as portas lógicas antes de entender os módulos principais.",
+            "Apenas a interface do usuário finais sem considerar o hardware."
+        ],
+        correct: 0,
+        explanation: "A abordagem top-down permite analisar o sistema hierarquicamente, focando em um nível de cada vez com abstração dos níveis mais baixos."
+    },
+    {
+        q: "Qual componente da CPU é responsável por orquestrar o ciclo de Busca, Decodificação e Execução (Fetch-Decode-Execute)?",
+        options: [
+            "Unidade de Controle (UC)",
+            "Unidade Aritmética e Lógica (ALU)",
+            "Barramento de dados",
+            "Célula de memória RAM"
+        ],
+        correct: 0,
+        explanation: "A Unidade de Controle orquestra o ciclo fetch-decode-execute por meio de uma máquina de estados finitos (FSM)."
+    },
+    {
+        q: "Na CPU, o conjunto composto pela ALU e pelos registradores é conhecido como:",
+        options: [
+            "Data Path (Caminho de Dados)",
+            "Unidade de Execução Remota",
+            "Barramento de Controle",
+            "Memória de Programa"
+        ],
+        correct: 0,
+        explanation: "Os registradores e a ALU juntos constituem o Data Path (Caminho de Dados)."
+    },
+    {
+        q: "Qual é a função básica exercida pelas portas lógicas booleanas no hardware de um computador?",
+        options: [
+            "Processamento de dados",
+            "Armazenamento binário definitivo",
+            "Movimentação de periféricos",
+            "Resfriamento de circuitos"
+        ],
+        correct: 0,
+        explanation: "As portas lógicas fornecem a função básica de processamento de dados."
+    },
+    {
+        q: "No processo de fabricação de circuitos integrados, um bloco fino de silício dividido em chips é chamado de:",
+        options: [
+            "Wafer",
+            "Soquete",
+            "Barramento",
+            "Transistor"
+        ],
+        correct: 0,
+        explanation: "Um wafer fino de silício é dividido em chips contendo matrizes de portas e células de memória."
+    },
+    {
+        q: "Os registradores fornecem qual tipo de funcionalidade dentro da CPU?",
+        options: [
+            "Armazenamento temporário de altíssima velocidade interno à CPU",
+            "Conexão física direta com a Internet",
+            "Processamento de sinais analógicos de som",
+            "Armazenamento permanente não volátil em disco"
+        ],
+        correct: 0,
+        explanation: "Registradores são unidades de armazenamento interno ultra-rápidas localizadas dentro do próprio processador."
+    },
+    {
+        q: "Quem é considerado o 'Pai da Computação' por ter projetado a Máquina Analítica e a Máquina Diferencial?",
+        options: [
+            "Charles Babbage",
+            "Blaise Pascal",
+            "Alan Turing",
+            "John von Neumann"
+        ],
+        correct: 0,
+        explanation: "Charles Babbage projetou a máquina analítica e diferencial, estabelecendo os conceitos basilares do computador moderno."
+    },
+    {
+        q: "Quem é reconhecida como a primeira programadora da história por criar um algoritmo para a máquina de Babbage?",
+        options: [
+            "Ada Lovelace",
+            "Grace Hopper",
+            "Marie Curie",
+            "Katherine Johnson"
+        ],
+        correct: 0,
+        explanation: "Ada Lovelace escreveu o primeiro algoritmo para ser processado por uma máquina (a máquina analítica de Babbage)."
+    },
+    {
+        q: "A primeira geração de computadores (décadas de 1940 e 1950) utilizava qual tecnologia principal em seus circuitos?",
+        options: [
+            "Válvulas eletrônicas",
+            "Transistores",
+            "Circuitos Integrados (Chips)",
+            "Microprocessadores"
+        ],
+        correct: 0,
+        explanation: "Os computadores de 1ª geração (como ENIAC e UNIVAC) eram construídos com válvulas eletrônicas."
+    },
+    {
+        q: "Qual foi a grande inovação trazida pela 2ª geração de computadores?",
+        options: [
+            "Substituição das válvulas por transistores",
+            "Uso de inteligência artificial",
+            "Criação da internet de banda larga",
+            "Substituição do silício por germânio"
+        ],
+        correct: 0,
+        explanation: "A 2ª geração substituiu as válvulas por transistores, reduzindo o tamanho e o consumo de energia."
+    },
+    {
+        q: "A 4ª geração de computadores é marcada principalmente por qual avanço tecnológico?",
+        options: [
+            "Surgimento dos microprocessadores",
+            "Uso exclusivo de cartões perfurados",
+            "Invenção do ábaco mecânico",
+            "Criação das válvulas a vácuo"
+        ],
+        correct: 0,
+        explanation: "A 4ª geração iniciou-se com a integração de toda a CPU em um único chip: o microprocessador."
+    },
+    {
+        q: "Frederick Taylor é o fundador da Administração Científica. Qual era o seu foco principal?",
+        options: [
+            "Racionalização do trabalho e das tarefas no chão de fábrica (Abordagem Bottom-Up)",
+            "Estruturação organizacional da alta cúpula (Abordagem Top-Down)",
+            "Aplicação de testes psicológicos em gerentes",
+            "Criação de sistemas informatizados de controle"
+        ],
+        correct: 0,
+        explanation: "Taylor focava nas tarefas, no estudo de tempos e movimentos no nível operacional (bottom-up)."
+    },
+    {
+        q: "Henri Fayol desenvolveu a Teoria Clássica da Administração. Qual era a sua abordagem principal?",
+        options: [
+            "Estrutura organizacional e papel dos executivos (Abordagem Top-Down)",
+            "Estudo de tempos e movimentos do operário",
+            "Teoria de sistemas computacionais fechados",
+            "Automação industrial por robótica"
+        ],
+        correct: 0,
+        explanation: "Fayol focava na estrutura da empresa como um todo e na alta administração (top-down)."
+    },
+    {
+        q: "Quais são as 5 funções básicas do administrador definidas por Fayol (PODCC)?",
+        options: [
+            "Planejar, Organizar, Dirigir, Coordenar e Controlar",
+            "Pesquisar, Operar, Deletar, Codificar e Calcular",
+            "Processar, Ordenar, Distribuir, Comprar e Cotar",
+            "Programar, Optar, Decidir, Criar e Concluir"
+        ],
+        correct: 0,
+        explanation: "As funções clássicas do administrador são Planejamento, Organização, Direção, Coordenação e Controle."
+    },
+    {
+        q: "O conceito de 'Homo Economicus', presente na Administração Científica de Taylor, pressupõe que:",
+        options: [
+            "O ser humano é motivado essencialmente por recompensas financeiras e salariais.",
+            "O ser humano trabalha apenas por prazer e auto-realização social.",
+            "O trabalhador necessita de autonomia criativa constante.",
+            "O desempenho independe do incentivo financeiro recebido."
+        ],
+        correct: 0,
+        explanation: "O Homo Economicus assume que o operário é motivado pelo ganho material e financeiro."
+    },
+    {
+        q: "Como se define o conceito de 'Eficiência' na gestão organizacional?",
+        options: [
+            "Relação de racionalidade econômica entre meios e fins (custo/benefício).",
+            "Grau de alcance exclusivo das metas e fins sem olhar custos.",
+            "Impacto social de um produto na qualidade de vida.",
+            "A capacidade de liderar reuniões sem conflitos."
+        ],
+        correct: 0,
+        explanation: "Eficiência diz respeito a fazer as coisas da forma correta, otimizando meios e custos."
+    },
+    {
+        q: "O conceito de 'Eficácia' em uma perspectiva de sistema aberto envolve:",
+        options: [
+            "A capacidade de alcançar os objetivos e captar recursos escassos do ambiente.",
+            "Reduzir os custos de produção independentemente da qualidade.",
+            "Executar rotinas mecânicas sem falhas técnicas.",
+            "Focar apenas no ambiente interno sem olhar para o mercado."
+        ],
+        correct: 0,
+        explanation: "Eficácia foca nos fins e metas, além da capacidade da organização interagir com o meio externo para obter recursos."
+    },
+    {
+        q: "A 'Efetividade' de uma organização mede:",
+        options: [
+            "Se os produtos/serviços estão atendendo às reais necessidades e expectativas do mercado e gerando impacto social.",
+            "A quantidade exata de horas trabalhadas pelos operários.",
+            "A velocidade de processamento dos computadores internos.",
+            "A quantidade de papéis impressos pelo setor contábil."
+        ],
+        correct: 0,
+        explanation: "Efetividade junta eficiência e eficácia para avaliar o impacto real e a satisfação gerada na sociedade/mercado."
+    },
+    {
+        q: "Quais são as três habilidades fundamentais do administrador e onde elas prevalecem?",
+        options: [
+            "Conceituais (Estratégico), Humanas (Tático) e Técnicas (Operacional)",
+            "Técnicas (Estratégico), Conceituais (Tático) e Humanas (Operacional)",
+            "Humanas (Estratégico), Técnicas (Tático) e Conceituais (Operacional)",
+            "Operacionais (Estratégico), Financeiras (Tático) e Sociais (Operacional)"
+        ],
+        correct: 0,
+        explanation: "Alta direção precisa de visão conceitual; Gerência média de visão humana; Supervisão de fábrica de visão técnica."
+    },
+    {
+        q: "Os Sistemas de Processamento de Transações (SPT / TPS) pertencem a qual categoria e realizam qual função?",
+        options: [
+            "Sistemas de Apoio às Operações; registram transações cotidianas como vendas e folha de pagamento.",
+            "Sistemas de Apoio Gerencial; elaboram relatórios estratégicos para o CEO.",
+            "Sistemas de Inteligência Artificial; tomam decisões estratégicas autônomas.",
+            "Sistemas Executivos; simulam cenários futuros de investimento."
+        ],
+        correct: 0,
+        explanation: "SPT/TPS são sistemas operacionais focados no registro eficiente de rotinas diárias e transações empresariais."
+    },
+    {
+        q: "Os Sistemas de Controle de Processos (PCS) são utilizados para:",
+        options: [
+            "Monitorar e controlar processos físicos industriais contínuos em tempo real.",
+            "Emitir relatórios trimestrais de contabilidade.",
+            "Enviar e-mails marketing para clientes cadastrados.",
+            "Calcular a folha de pagamento dos colaboradores."
+        ],
+        correct: 0,
+        explanation: "PCS utiliza computadores para monitorar e ajustar automaticamente processos físicos industriais."
+    },
+    {
+        q: "Qual sistema de apoio à decisão gerencial fornece relatórios periódicos programados para apoiar decisões diárias estruturadas?",
+        options: [
+            "Sistema de Informação Gerencial (SIG / MIS)",
+            "Sistema de Informação Executiva (SIE / EIS)",
+            "Sistema Especialista (ES)",
+            "Sistema de Processamento de Transações (SPT)"
+        ],
+        correct: 0,
+        explanation: "O SIG/MIS fornece relatórios padronizados e sumários para gestores tomarem decisões diárias e estruturadas."
+    },
+    {
+        q: "Os Sistemas de Apoio à Decisão (SAD / DSS) são projetados especificamente para auxiliar em:",
+        options: [
+            "Decisões semi-estruturadas e não-estruturadas usando modelos analíticos.",
+            "Emissão automática de notas fiscais de balcão.",
+            "Controle direto de braços robóticos em fábricas.",
+            "Armazenamento de cópias de segurança em fita magnética."
+        ],
+        correct: 0,
+        explanation: "SAD/DSS utilizam modelos matemáticos e analíticos para apoiar decisões complexas semi ou não-estruturadas."
+    },
+    {
+        q: "Uma análise do tipo 'E-se' (What-If) em um SAD consiste em:",
+        options: [
+            "Observar como o resultado muda quando variáveis hipotéticas são alteradas.",
+            "Encontrar o valor exato de uma entrada para atingir uma meta desejada.",
+            "Descobrir senhas de usuários em bancos de dados.",
+            "Imprimir o histórico de relatórios diários de vendas."
+        ],
+        correct: 0,
+        explanation: "A análise What-If testa variações hipotéticas de variáveis para observar os impactos no resultado final."
+    },
+    {
+        q: "Os Sistemas de Informação Executiva (SIE / EIS) destinam-se principalmente a qual público?",
+        options: [
+            "Alta administração e executivos de topo",
+            "Supervisores de linha de montagem",
+            "Operadores de caixa de supermercado",
+            "Clientes externos da empresa"
+        ],
+        correct: 0,
+        explanation: "O EIS fornece informações resumidas e estratégicas diretamente para executivos de alto nível."
+    },
+    {
+        q: "Qual tecnologia é utilizada para analisar grandes volumes de dados multidimensionais de forma rápida e interativa?",
+        options: [
+            "OLAP (Processamento Analítico Online)",
+            "HTML (Linguagem de Marcação de Hipertexto)",
+            "BIOS (Sistema Básico de Entrada e Saída)",
+            "DNS (Sistema de Nomes de Domínio)"
+        ],
+        correct: 0,
+        explanation: "OLAP permite consultar e analisar dados armazenados em estruturas multidimensionais."
+    },
+    {
+        q: "O processo de minerar grandes volumes de dados históricos contidos em um Data Warehouse à procura de padrões oculta-se no conceito de:",
+        options: [
+            "Data Mining",
+            "Data Entry",
+            "Data Backup",
+            "Data Processing"
+        ],
+        correct: 0,
+        explanation: "Data Mining é a mineração automática de dados para descobrir padrões e correlações."
+    },
+    {
+        q: "Um Sistema Especialista (SE) na área de Inteligência Artificial é composto por:",
+        options: [
+            "Base de Conhecimento e Motor (Utilitário) de Inferência",
+            "Apenas planilhas eletrônicas simples",
+            "Teclado, Mouse e Monitor de Alta Resolução",
+            "Sistemas exclusivamente robóticos sem software"
+        ],
+        correct: 0,
+        explanation: "Sistemas Especialistas contêm uma Base de Conhecimento com regras de peritos e um Motor de Inferência para deduzir respostas."
+    },
+    {
+        q: "Em relação ao tipo de decisão por nível hierárquico, assinale a alternativa correta:",
+        options: [
+            "Nível Estratégico = Decisões Não-estruturadas; Nível Operacional = Decisões Estruturadas.",
+            "Nível Estratégico = Decisões Estruturadas; Nível Operacional = Decisões Não-estruturadas.",
+            "Todos os níveis tomam apenas decisões totalmente padronizadas.",
+            "O nível tático não participa do processo decisório."
+        ],
+        correct: 0,
+        explanation: "Quanto mais alto o nível (Estratégico), mais incertas e não-estruturadas são as decisões. Na base (Operacional), as decisões são rotineiras e estruturadas."
+    },
+    {
+        q: "Na CPU, qual registrador guarda o endereço da próxima instrução a ser buscada na memória?",
+        options: [
+            "PC (Program Counter / Contador de Programa)",
+            "IR (Instruction Register)",
+            "MAR (Memory Address Register)",
+            "ALU (Arithmetic Logic Unit)"
+        ],
+        correct: 0,
+        explanation: "O PC (Program Counter) armazena o endereço da próxima instrução a ser executada."
+    },
+    {
+        q: "O registrador da CPU que armazena a instrução atualmente em decodificação/execução é o:",
+        options: [
+            "IR (Instruction Register / Registrador de Instrução)",
+            "PC (Program Counter)",
+            "CCR (Condition Code Register)",
+            "RAM"
+        ],
+        correct: 0,
+        explanation: "O IR armazena a instrução que está sendo processada no momento."
+    },
+    {
+        q: "No contexto de avaliação de desempenho, quando uma empresa atinge seus objetivos reduzindo custos ao máximo, ela foi:",
+        options: [
+            "Eficaz e Eficiente",
+            "Apenas Ineficiente",
+            "Irrelevante",
+            "Apenas Redundante"
+        ],
+        correct: 0,
+        explanation: "Atingir objetivos garante Eficácia; otimizar e economizar recursos garante Eficiência."
+    },
+    {
+        q: "A função administrativa de 'Controlar' tem como produto principal:",
+        options: [
+            "Informação sobre a compatibilidade entre o esperado e o alcançado",
+            "Desenho de novos logotipos comerciais",
+            "Demissão imediata de funcionários",
+            "Compra de novas máquinas de fabricação"
+        ],
+        correct: 0,
+        explanation: "A função Controle compara resultados reais com o planejado, gerando informação para correções."
+    },
+    {
+        q: "Sistemas Colaborativos Empresariais usam tecnologias para:",
+        options: [
+            "Melhorar a comunicação, compartilhar dados e apoiar o trabalho em equipe",
+            "Substituir todos os funcionários humanos por software",
+            "Fazer o controle mecânico de motores de carros",
+            "Processar exclusivamente pagamentos de impostos"
+        ],
+        correct: 0,
+        explanation: "Sistemas colaborativos apoiam a interação, troca de conhecimentos e esforço conjunto em projetos."
+    },
+    {
+        q: "Qual destas alternativas apresenta uma ferramenta típica de conferência eletrônica em Sistemas Colaborativos?",
+        options: [
+            "Videoconferência e reuniões eletrônicas",
+            "Impressora matricial",
+            "Código de barras de produto",
+            "Disco rígido externo"
+        ],
+        correct: 0,
+        explanation: "Videoconferências e fóruns são ferramentas de conferência eletrônica para colaboração."
+    },
+    {
+        q: "Qual dos seguintes itens NÃO é uma função típica de um Sistema de Informação de Marketing?",
+        options: [
+            "Controle direto de robôs de soldagem industrial",
+            "Administração do Relacionamento com o Cliente (CRM)",
+            "Pesquisa e Previsão de Mercado",
+            "Automação da Força de Vendas"
+        ],
+        correct: 0,
+        explanation: "Controle de robôs industriais é função de Sistemas de Controle de Processos (PCS), não de Marketing."
+    },
+    {
+        q: "A análise de 'Busca de Metas' (Goal-Seeking) em um SAD funciona de que maneira?",
+        options: [
+            "Define-se um resultado final desejado e o sistema calcula o valor necessário da variável de entrada.",
+            "Muda-se a entrada repetidamente até o computador travar.",
+            "Analisa-se o histórico dos últimos 50 anos de transações.",
+            "Gera-se um relatório impresso simples sem cálculos."
+        ],
+        correct: 0,
+        explanation: "Goal-seeking faz o caminho inverso: fixa a meta desejada e descobre a variável de entrada necessária."
+    },
+    {
+        q: "Em Inteligência Artificial, redes que imitam a estrutura de neurônios biológicos para aprender com padrões são:",
+        options: [
+            "Redes Neurais Artificiais",
+            "Sistemas de Válvulas Mecânicas",
+            "Bancos de Dados Relacionais",
+            "Barramentos PCI Express"
+        ],
+        correct: 0,
+        explanation: "Redes Neurais simulam o aprendizado biológico para reconhecer padrões complexos."
+    },
+    {
+        q: "Lógica Difusa (Fuzzy Logic) é uma técnica de IA que permite:",
+        options: [
+            "Processar dados incompletos ou imprecisos com valores intermediários entre verdadeiro e falso.",
+            "Executar apenas operações matematicamente exatas de 0 ou 1.",
+            "Aumentar a velocidade do clock da CPU fisicamente.",
+            "Substituir a memória RAM por cartões perfurados."
+        ],
+        correct: 0,
+        explanation: "A lógica fuzzy lida com termos imprecisos ('morno', 'quase cheio') trabalhando com graus de pertinência."
+    }
+];
+
+let questions = [];
+let currentIndex = 0;
+let score = 0;
+let answered = false;
+
+function shuffle(array) {
+    let currentIndex = array.length, randomIndex;
+    const newArray = [...array];
+    while (currentIndex !== 0) {
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+        [newArray[currentIndex], newArray[randomIndex]] = [newArray[randomIndex], newArray[currentIndex]];
+    }
+    return newArray;
+}
+
+function initQuiz() {
+    currentIndex = 0;
+    score = 0;
+    answered = false;
+
+    // Embaralha o banco de dados e pega 40 questões
+    const shuffledBank = shuffle(questionBank).slice(0, 40);
+
+    questions = shuffledBank.map((qObj) => {
+        const opts = qObj.options.map((optText, origIdx) => ({
+            text: optText,
+            isCorrect: origIdx === qObj.correct
+        }));
+        return {
+            question: qObj.q,
+            options: shuffle(opts),
+            explanation: qObj.explanation
+        };
+    });
+
+    document.getElementById('quiz-card').style.display = 'block';
+    document.getElementById('result-screen').style.display = 'none';
+
+    renderQuestion();
+}
+
+function renderQuestion() {
+    answered = false;
+    const qData = questions[currentIndex];
+
+    // Atualizar cabeçalho e progresso
+    document.getElementById('q-number').innerText = `Questão ${currentIndex + 1} de ${questions.length}`;
+    document.getElementById('score-counter').innerText = `Acertos: ${score}`;
+    
+    const progressPct = ((currentIndex) / questions.length) * 100;
+    document.getElementById('progress-bar').style.width = `${progressPct}%`;
+
+    // Texto da pergunta
+    document.getElementById('q-text').innerText = qData.question;
+
+    // Renderizar alternativas
+    const optsContainer = document.getElementById('options-container');
+    optsContainer.innerHTML = '';
+
+    qData.options.forEach((opt, idx) => {
+        const label = document.createElement('label');
+        label.className = 'option';
+        label.id = `opt-label-${idx}`;
+        label.innerHTML = `
+            <input type="radio" name="opt" value="${idx}">
+            <span class="option-text">${opt.text}</span>
+        `;
+        optsContainer.appendChild(label);
+    });
+
+    // Resetar feedback
+    const feedbackBox = document.getElementById('feedback');
+    feedbackBox.style.display = 'none';
+    feedbackBox.className = 'feedback-box';
+
+    // Botão de ação
+    const actionBtn = document.getElementById('action-btn');
+    actionBtn.innerText = "Confirmar Resposta";
+    actionBtn.disabled = false;
+}
+
+function handleAction() {
+    if (!answered) {
+        // Modo: Confirmar Resposta
+        const selectedInput = document.querySelector('input[name="opt"]:checked');
+        if (!selectedInput) {
+            alert("Por favor, selecione uma alternativa antes de confirmar.");
+            return;
+        }
+
+        answered = true;
+        const selectedIdx = parseInt(selectedInput.value);
+        const qData = questions[currentIndex];
+        const correctIdx = qData.options.findIndex(o => o.isCorrect);
+
+        // Desabilitar todas as opções
+        const inputs = document.querySelectorAll('input[name="opt"]');
+        inputs.forEach(i => i.disabled = true);
+
+        // Destacar alternativa correta
+        document.getElementById(`opt-label-${correctIdx}`).classList.add('correct-option');
+
+        const feedbackBox = document.getElementById('feedback');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const feedbackExp = document.getElementById('feedback-explanation');
+
+        if (selectedIdx === correctIdx) {
+            score++;
+            document.getElementById('score-counter').innerText = `Acertos: ${score}`;
+            feedbackBox.className = 'feedback-box correct';
+            feedbackTitle.innerText = "✓ Resposta Correta!";
+        } else {
+            document.getElementById(`opt-label-${selectedIdx}`).classList.add('wrong-option');
+            feedbackBox.className = 'feedback-box wrong';
+            feedbackTitle.innerText = "✗ Resposta Incorreta!";
+        }
+
+        feedbackExp.innerText = qData.explanation;
+        feedbackBox.style.display = 'block';
+
+        // Atualiza o botão para "Próxima Questão"
+        const actionBtn = document.getElementById('action-btn');
+        if (currentIndex < questions.length - 1) {
+            actionBtn.innerText = "Próxima Questão →";
+        } else {
+            actionBtn.innerText = "Ver Resultado Final";
+        }
+    } else {
+        // Modo: Avançar Questão
+        currentIndex++;
+        if (currentIndex < questions.length) {
+            renderQuestion();
+        } else {
+            showResults();
+        }
+    }
+}
+
+function showResults() {
+    document.getElementById('quiz-card').style.display = 'none';
+    document.getElementById('result-screen').style.display = 'block';
+    document.getElementById('progress-bar').style.width = '100%';
+
+    document.getElementById('final-score').innerText = `${score} / ${questions.length}`;
+
+    const pct = (score / questions.length) * 100;
+    let feedback = "";
+    if (pct >= 80) feedback = "Excelente resultado! Você domina muito bem o conteúdo da prova.";
+    else if (pct >= 60) feedback = "Bom trabalho! Deu para acertar a maioria, mas vale a pena dar mais uma lida nos erros.";
+    else feedback = "Recomendamos revisar os tópicos da anotação e tentar fazer o simulado novamente.";
+
+    document.getElementById('final-feedback').innerText = feedback;
+}
+
+function restartQuiz() {
+    initQuiz();
+}
+
+window.onload = initQuiz;
+</script>
+
+</body>
+</html>
